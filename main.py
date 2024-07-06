@@ -34,3 +34,14 @@ async def cantidad_filmaciones_mes(mes: str):
     return f"{cantidad} peliculas fueron estrenadas en el mes de {mes}"
 
 
+
+dias_semana = {
+    "lunes": "Monday", "martes": "Tuesday", "miércoles": "Wednesday", "jueves": "Thursday", "viernes": "Friday", 
+    "sábado": "Saturday",
+    "domingo": "Sunday"
+}
+
+@app.get('/cantidad_filmaciones_dia/{dia}')
+async def cantidad_filmaciones_dia(dias: str):
+
+    dia = dia.lower().replace('á', 'a').replace('é', 'e').replace('í', 'i').replace('ó', 'o').replace('ú', 'u') 
