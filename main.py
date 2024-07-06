@@ -1,4 +1,4 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException
 import pandas as pd
 
 app = FastAPI()
@@ -60,3 +60,30 @@ async def cantidad_filmaciones_dia(dia: str):
     cantidad = len(peliculas_dia)
 
     return f"{cantidad} peliculas fueron estrenadas el {dia}"
+
+
+@app.get('/score_titulo/{titulo}')
+async def score_titulo(titulo: str):
+
+    #Convierto el a minuscula para que la funcion distinga entre minusculas y mayusculas(case-insensitive)
+    titulo = titulo.lower()
+
+    #Busco la pelicula
+    pelicula = df_movies[df_movies['title'].str.lower() == titulo]
+
+    #Si no esta la pelicula, devuelve un error de tipo 404
+    if pelicula.empty:
+        raise HTTPException(status_code=404, detail=f"No se encontro la pelicula: {titulo}")
+    
+    if len(pelicula) > 1:
+        pelicula = pelicula.iloc[0]
+    else:
+        pelicula = pelicula.iloc[0]
+
+    #Extraigo el titulo, el año de lanzamiento y el puntaje
+    titulo_original = pelicula['title']
+    año_estreno = pelicula['release_year']
+    score = pelicula['vote_average']
+
+    return f"La pelicula {titulo_original} fue estrenada en el año {año_estreno} con un score/popularidad de {score}"
+
