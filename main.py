@@ -36,12 +36,27 @@ async def cantidad_filmaciones_mes(mes: str):
 
 
 dias_semana = {
-    "lunes": "Monday", "martes": "Tuesday", "miércoles": "Wednesday", "jueves": "Thursday", "viernes": "Friday", 
-    "sábado": "Saturday",
-    "domingo": "Sunday"
+    "lunes": "Monday", "martes": "Tuesday", "miércoles": "Wednesday", "miercoles": "Wednesday", "jueves": "Thursday", "viernes": "Friday", 
+    "sábado": "Saturday", "sabado": "Saturday", "domingo": "Sunday"
 }
 
 @app.get('/cantidad_filmaciones_dia/{dia}')
-async def cantidad_filmaciones_dia(dias: str):
+async def cantidad_filmaciones_dia(dia: str):
 
+    #Convierto a minuscula y quito acentos
     dia = dia.lower().replace('á', 'a').replace('é', 'e').replace('í', 'i').replace('ó', 'o').replace('ú', 'u') 
+
+    #Verifico si el dia ingresado es correcto
+    if dia not in dias_semana:
+        return f"Error: {dia} no es válido. Por favor, ingrese un dia de la semana en español"
+    
+    #Obtengo el nombre de los dias en Inglés
+    day_name = dias_semana[dia]
+    
+    #Filtro las peliculas por dia
+    peliculas_dia = df_movies[df_movies['release_date'].dt.day_name() == day_name]
+
+    #Cuento las peliculas
+    cantidad = len(peliculas_dia)
+
+    return f"{cantidad} peliculas fueron estrenadas el {dia}"
