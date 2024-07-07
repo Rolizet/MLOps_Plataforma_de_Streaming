@@ -35,6 +35,7 @@ async def cantidad_filmaciones_mes(mes: str):
 
 
 
+
 dias_semana = {
     "lunes": "Monday", "martes": "Tuesday", "miércoles": "Wednesday", "miercoles": "Wednesday", "jueves": "Thursday", "viernes": "Friday", 
     "sábado": "Saturday", "sabado": "Saturday", "domingo": "Sunday"
@@ -62,6 +63,7 @@ async def cantidad_filmaciones_dia(dia: str):
     return f"{cantidad} peliculas fueron estrenadas el {dia}"
 
 
+
 @app.get('/score_titulo/{titulo}')
 async def score_titulo(titulo: str):
 
@@ -86,4 +88,37 @@ async def score_titulo(titulo: str):
     score = pelicula['vote_average']
 
     return f"La pelicula {titulo_original} fue estrenada en el año {año_estreno} con un score/popularidad de {score}"
+
+
+
+@app.get('/votos_titulo/{titulo}')
+async def votos_titulo(titulo: str):
+
+    #Covierto el titulo en minuscula
+    titulo = titulo.lower()
+
+    #Busco la pelicula
+    pelicula = df_movies[df_movies['title'].str.lower() == titulo]
+
+    #Devuelvo un error si no encuentra la pelicula
+    if pelicula.empty:
+         raise HTTPException(status_code=404, detail=f"No se encontro la pelicula: {titulo}")
+       
+       
+    if len(pelicula) > 1:
+        pelicula = pelicula.iloc[0]
+    else:
+        pelicula = pelicula.iloc[0]
+
+    #Extraigo el titulo,la cantidad de votos y valor promedio de las votaciones
+    titulo_original = pelicula['title']
+    año_estreno = pelicula['release_year']
+    votos_totales = pelicula['vote_count']
+    promedio_votos = pelicula['vote_average']
+
+    #Verifico si la pelicula cuenta con al menos 2000 valoraciones
+    if votos_totales < 2000:
+        return f"La pelicula {titulo_original} no cumple con la condicion de contar al menos 2000 valoraciones. Cuenta con {votos_totales} valoraciones"
+    
+    return f"La pelicula {titulo_original} fue estrenada en el año {año_estreno}. La misma cuenta con un total de {votos_totales} valoraciones, con un promedio de {promedio_votos}"
 
