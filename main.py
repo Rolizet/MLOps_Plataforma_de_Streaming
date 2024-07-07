@@ -165,21 +165,21 @@ async def get_director(nombre_director: str) -> dict:
     #Calculo el exito total del director a traves del retorno
     retorno = peliculas_director['return'].sum()
 
-    #Creo un df con los detalles que necesito de las peliculas
+    #Preparo los detalles que necesito de las peliculas
     peliculas_info = []
     for _, pelicula in peliculas_director.iterrows():
         peliculas_info.append({
             "titulo": pelicula['title'],
             "fecha_lanzamiento": pelicula['release_date'].strftime('%Y-%m-%d'),
-            "retorno": pelicula['return'],
-            "costo": pelicula['budget'],
-            "ganancia": pelicula['revenue'] - pelicula['budget']
+            "retorno": round(pelicula['return'], 2),
+            "costo": round(pelicula['budget'], 2),
+            "ganancia": round(pelicula['revenue'] - pelicula['budget'], 2)
         })
     
 
     respuesta = {
         "director": nombre_director.title(), 
-        "retorno": retorno, 
+        "retorno": round(retorno, 2), 
         "peliculas": peliculas_info
     }
 
