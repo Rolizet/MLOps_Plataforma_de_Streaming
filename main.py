@@ -146,3 +146,43 @@ async def get_actor(nombre_actor: str):
     promedio_retorno = retorno / cantidad_peliculas
 
     return f"El actor {nombre_actor.title()} ha participado de {cantidad_peliculas} filmaciones, el mismo ha conseguido un retorno de {retorno:.2f} con un promedio de {promedio_retorno:.2f} por filmacion"
+
+
+
+@app.get('/get_director/{nombre_director}')
+async def get_director(nombre_director: str) -> dict:
+
+    #Convierto a minuscula
+    nombre_director = nombre_director.lower()
+
+    #Filtro las peliculas por director
+    peliculas_director = df_movies[df_movies['director'].str.lower() == nombre_director]
+
+    #Si no encuentra las peliculas de acuerdo al director, devuelve error
+    if peliculas_director.empty:
+        raise HTTPException(status_code=404, detail=f"No se encontro el director: {nombre_director}.")
+    
+    #Calculo el exito total del director a traves del retorno
+    retorno = peliculas_director['return'].sum()
+
+    #Creo un df con los detalles que necesito de las peliculas
+    peliculas_info = []
+    for _, pelicula in peliculas_director.iterrows():
+        peliculas_info.append({
+            "titulo": pelicula['title'],
+            "fecha_lanzamiento": pelicula['release_date'].strftime('%Y-%m-%d'),
+            "retorno": pelicula['return'],
+            "costo": pelicula['budget'],
+            "ganancia": pelicula['revenue'] - pelicula['budget']
+        })
+    
+
+    respuesta = {
+        "director": nombre_director.title(), 
+        "retorno": retorno, 
+        "peliculas": peliculas_info
+    }
+
+    return respuesta
+
+
