@@ -1,5 +1,6 @@
 from fastapi import FastAPI, HTTPException
 import pandas as pd
+import ast
 
 app = FastAPI()
 
@@ -122,3 +123,26 @@ async def votos_titulo(titulo: str):
     
     return f"La pelicula {titulo_original} fue estrenada en el año {año_estreno}. La misma cuenta con un total de {votos_totales} valoraciones, con un promedio de {promedio_votos}"
 
+
+@app.get('/get_actor/{nombre_actor}')
+async def get_actor(nombre_actor: str):
+
+    #Convierto a minuscula
+    nombre_actor = nombre_actor.lower()
+
+    #filtro las peliculas donde aparece el actor y no es director
+    peliculas_actor = df_movies[
+        (df_movies['actors'].apply(lambda x: nombre_actor in [actor.lower() for actor in x])) & 
+        (df_movies['director'].str.lower() != nombre_actor)
+    ]
+
+    #Si no hay películas del actor, devuelvo un error
+    if peliculas_actor.empty:
+        raise HTTPException(status_code=404, detail=f"No se encontró el actor: {nombre_actor} o aparece como director")
+
+    #Calculos requeridos
+    cantidad_peliculas = len(peliculas_actor)
+    retorno = peliculas_actor['return'].sum()
+    promedio_retorno = retorno / cantidad_peliculas
+
+    return f"El actor {nombre_actor.title()} ha participado de {cantidad_peliculas} filmaciones, el mismo ha conseguido un retorno de {retorno:.2f} con un promedio de {promedio_retorno:.2f} por filmacion"
