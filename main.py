@@ -1,6 +1,9 @@
 from fastapi import FastAPI, HTTPException
 import pandas as pd
+from pydantic import BaseModel
 import ast
+from sklearn.feature_extraction.text import TfidfVectorizer
+from sklearn.metrics.pairwise import cosine_similarity
 
 app = FastAPI()
 
@@ -185,4 +188,49 @@ async def get_director(nombre_director: str) -> dict:
 
     return respuesta
 
+
+
+
+df_recomendacion = pd.read_parquet('df_recomendacion.parquet')
+
+@app.get('/recomendacion_pelicula/{titulo}')
+async def recomendacion_pelicula(titulo: str):
+    
+    "Verifico si el titulo se encuentra en los datos"
+    if titulo not in df_recomendacion['title'].values:
+        #Si no lo encuentra de vuelvo un error
+        raise HTTPException(status_code=404, detail="Película no encontrada")
+    
+    
+    #Creo una instancia de TfidfVectorizer con stopwords en ingles
+    tfidf = TfidfVectorizer(stop_words='english')
+    
+    #Creo la matriz tf-idf con los features de las peliculas
+    tfidf_matrix = tfidf.fit_transform(df_recomendacion['features'])
+
+    #Obtengo el índice del título ingresado.
+    idx = df_recomendacion[df_recomendacion['title'] == titulo].index[0]
+
+    #Obtengo el vector tf-idf del título ingresado.
+    item_tfidf_vector = tfidf_matrix[idx]
+    
+    #Calculo la similitud del coseno
+    cosine_sim = cosine_similarity(item_tfidf_vector, tfidf_matrix)
+
+    #Guardo los scores de similitud en una lista de tuplas, donde el primer elemento es el índice y el segundo es el score. Utilizamos un condicional para no incluir la película ingresada.
+    sim_scores = [(i, score) for i, score in enumerate(cosine_sim[0]) if i != idx]
+
+    #Ordeno los scores de mayor a menor.
+    sim_scores = sorted(sim_scores, key=lambda x: x[1], reverse=True)
+
+    #Obtengo las 5 películas más similares.
+    sim_scores = sim_scores[:5]
+
+    #Obtengo los títulos de las películas recomendadas y los convierto en lista.
+    recommended_movies = df_recomendacion['title'].iloc[[i[0] for i in sim_scores]].tolist()
+    
+    result = {"Películas recomendadas": recommended_movies}
+
+    #Devuelvo las películas recomendadas.
+    return result
 
