@@ -1,4 +1,7 @@
-# Poryecto Machine Learning Operations (MLOps)
+# <p align="center"><a href="https://sistema-recomendacion-steam-28s3.onrender.com/docs">Sistema de recomendacion de peliculas (MLOps)</a></p>
+
+![alt text](MLOps.jpg)
+
 
 ## Descripción del problema (Contexto y rol a desarrollar)
 ### Contexto
@@ -50,5 +53,5 @@ Implementamos una API utilizando el framework FastAPI con las siguientes funcion
 Entrenamos un modelo de machine learning para crear un sistema de recomendación de películas basado en similitud de contenido. Este sistema recomienda películas similares a una dada. Entrenamos el modelo utilizando TF-IDF y similitud de coseno.
 
 ## Links útiles 📎🎬 
-- Repositorio (Github): https://github.com/flormiranda1/Proyecto-steamgames
-- Deploy del Proyecto (Render): https://fastapi-steam-games.onrender.com/docs#/
+- Repositorio (Github): https://github.com/Rolizet/PI_MLOps_Plat_STREAMING
+- Deploy del Proyecto (Render): https://pi-mlops-plat-streaming.onrender.com/docs

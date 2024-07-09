@@ -1,6 +1,5 @@
 from fastapi import FastAPI, HTTPException
 import pandas as pd
-from pydantic import BaseModel
 import ast
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
@@ -27,11 +26,11 @@ async def cantidad_filmaciones_mes(mes: str):
     if mes not in meses_español:
         return f"Error: {mes} no es válido. Por favor, ingrese un mes en español."
     
-#Filtro las peliculas de acuerdo al mes ingresado
+    #Filtro las peliculas de acuerdo al mes ingresado
     peliculas_mes = df_movies[df_movies['release_date'].dt.month == meses_español[mes]]
 
 
- #Cuentos las peliculas en el mes especificado
+    #Cuento las peliculas en el mes especificado
     cantidad = len(peliculas_mes)
 
 
@@ -120,7 +119,7 @@ async def votos_titulo(titulo: str):
     votos_totales = pelicula['vote_count']
     promedio_votos = pelicula['vote_average']
 
-    #Verifico si la pelicula cuenta con al menos 2000 valoraciones
+    #Verifico si la pelicula tiene al menos 2000 valoraciones
     if votos_totales < 2000:
         return f"La pelicula {titulo_original} no cumple con la condicion de contar al menos 2000 valoraciones. Cuenta con {votos_totales} valoraciones"
     
@@ -193,44 +192,49 @@ async def get_director(nombre_director: str) -> dict:
 
 df_recomendacion = pd.read_parquet('Notebooks\df_recomendacion.parquet')
 
+#Creo una instancia de TfidfVectorizer con stopwords en ingles, lo hago una sola vez al inicio para mejorar el rendimiento
+tfidf = TfidfVectorizer(stop_words='english')
+    
+#Creo la matriz tf-idf con los features de las peliculas
+tfidf_matriz = tfidf.fit_transform(df_recomendacion['features'])
+
+#Obtengo el índice del título ingresado.
+indices = pd.Series(df_recomendacion.index, index=df_recomendacion['title']).drop_duplicates()
+
 @app.get('/recomendacion_pelicula/{titulo}')
 async def recomendacion_pelicula(titulo: str):
 
-    "Verifico si el titulo se encuentra en los datos"
-    if titulo not in df_recomendacion['title'].values:
-        #Si no lo encuentra de vuelvo un error
+    #Verifico si el titulo se encuentra en los datos
+    if titulo not in indices:
+        #Si no lo encuentra devuelvo un error
         raise HTTPException(status_code=404, detail="Película no encontrada")
     
-    
-    #Creo una instancia de TfidfVectorizer con stopwords en ingles
-    tfidf = TfidfVectorizer(stop_words='english')
-    
-    #Creo la matriz tf-idf con los features de las peliculas
-    tfidf_matrix = tfidf.fit_transform(df_recomendacion['features'])
-
-    #Obtengo el índice del título ingresado.
-    idx = df_recomendacion[df_recomendacion['title'] == titulo].index[0]
-
-    #Obtengo el vector tf-idf del título ingresado.
-    item_tfidf_vector = tfidf_matrix[idx]
+    #Obtengo el indice del título ingresado.
+    idx = indices[titulo]
     
     #Calculo la similitud del coseno
-    cosine_sim = cosine_similarity(item_tfidf_vector, tfidf_matrix)
+    cosine_sim = cosine_similarity(tfidf_matriz[idx:idx+1], tfidf_matriz).flatten()
 
-    #Guardo los scores de similitud en una lista de tuplas, donde el primer elemento es el índice y el segundo es el score. Utilizamos un condicional para no incluir la película ingresada.
-    sim_scores = [(i, score) for i, score in enumerate(cosine_sim[0]) if i != idx]
-
-    #Ordeno los scores de mayor a menor.
+    #Guardo los scores de similitud en una lista de tuplas, donde el primer elemento es el índice y el segundo es el score.
+    sim_scores = list(enumerate(cosine_sim))
+    #Ordeno la lista de mayor a menor.
     sim_scores = sorted(sim_scores, key=lambda x: x[1], reverse=True)
 
-    #Obtengo las 5 películas más similares.
-    sim_scores = sim_scores[:5]
+
+    #Obtengo las 6 películas más similares (incluyendo la misma pelicula)
+    sim_scores = sim_scores[:6]
+
+    #Excluyo la primera película si es la misma que se ingresó
+    if sim_scores[0][0] == idx:
+        sim_scores = sim_scores[1:6]
+    else:
+        sim_scores = sim_scores[:5]
 
     #Obtengo los títulos de las películas recomendadas y los convierto en lista.
-    recommended_movies = df_recomendacion['title'].iloc[[i[0] for i in sim_scores]].tolist()
+    movies_indices = [i[0] for i in sim_scores]
+    recommended_movies = df_recomendacion['title'].iloc[movies_indices].tolist()
     
-    result = {"Películas recomendadas": recommended_movies}
 
     #Devuelvo las películas recomendadas.
-    return result
+    return recommended_movies
 
