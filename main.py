@@ -190,7 +190,7 @@ async def get_director(nombre_director: str) -> dict:
 
 
 
-df_recomendacion = pd.read_parquet('Notebooks\df_recomendacion.parquet')
+df_recomendacion = pd.read_parquet('Notebooks/df_recomendacion.parquet')
 
 #Creo una instancia de TfidfVectorizer con stopwords en ingles, lo hago una sola vez al inicio para mejorar el rendimiento
 tfidf = TfidfVectorizer(stop_words='english')
