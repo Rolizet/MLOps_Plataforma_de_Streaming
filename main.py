@@ -105,14 +105,13 @@ async def votos_titulo(titulo: str):
 
     #Devuelvo un error si no encuentra la pelicula
     if pelicula.empty:
-         raise HTTPException(status_code=404, detail=f"No se encontro la pelicula: {titulo}")
-       
-       
+        raise HTTPException(status_code=404, detail=f"No se encontro la pelicula: {titulo}")
+
     if len(pelicula) > 1:
         pelicula = pelicula.iloc[0]
     else:
         pelicula = pelicula.iloc[0]
-
+        
     #Extraigo el titulo,la cantidad de votos y valor promedio de las votaciones
     titulo_original = pelicula['title']
     año_estreno = pelicula['release_year']
@@ -122,7 +121,7 @@ async def votos_titulo(titulo: str):
     #Verifico si la pelicula tiene al menos 2000 valoraciones
     if votos_totales < 2000:
         return f"La pelicula {titulo_original} no cumple con la condicion de contar al menos 2000 valoraciones. Cuenta con {votos_totales} valoraciones"
-    
+
     return f"La pelicula {titulo_original} fue estrenada en el año {año_estreno}. La misma cuenta con un total de {votos_totales} valoraciones, con un promedio de {promedio_votos}"
 
 
