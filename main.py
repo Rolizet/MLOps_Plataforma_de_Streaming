@@ -191,11 +191,11 @@ async def get_director(nombre_director: str) -> dict:
 
 
 
-df_recomendacion = pd.read_parquet('df_recomendacion.parquet')
+df_recomendacion = pd.read_parquet('Notebooks\df_recomendacion.parquet')
 
 @app.get('/recomendacion_pelicula/{titulo}')
 async def recomendacion_pelicula(titulo: str):
-    
+
     "Verifico si el titulo se encuentra en los datos"
     if titulo not in df_recomendacion['title'].values:
         #Si no lo encuentra de vuelvo un error
