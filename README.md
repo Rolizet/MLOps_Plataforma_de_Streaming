@@ -52,6 +52,10 @@ Implementamos una API utilizando el framework FastAPI con las siguientes funcion
 
 Entrenamos un modelo de machine learning para crear un sistema de recomendación de películas basado en similitud de contenido. Este sistema recomienda películas similares a una dada. Entrenamos el modelo utilizando TF-IDF y similitud de coseno.
 
++ def **recomendacion( *`titulo`* )**:
+    Se ingresa el nombre de una película y te recomienda las similares en una lista de 5 valores.
+
 ## Links útiles 📎🎬 
 - Repositorio (Github): https://github.com/Rolizet/PI_MLOps_Plat_STREAMING
 - Deploy del Proyecto (Render): https://pi-mlops-plat-streaming.onrender.com/docs
+- Link al Dataset: https://drive.google.com/drive/folders/1X_LdCoGTHJDbD28_dJTxaD4fVuQC9Wt5
